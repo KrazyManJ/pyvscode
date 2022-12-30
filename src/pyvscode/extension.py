@@ -1,6 +1,5 @@
 import re
 from dataclasses import dataclass
-from typing import Union
 
 from .pyvscode import vscode_check
 from re import search, IGNORECASE
@@ -59,9 +58,7 @@ class VSCodeExtension(object):
 
 
 @vscode_check
-def get_installed_extensions(
-        category: Union[ExtensionCategory, None] = None
-) -> list[VSCodeExtension]:
+def get_installed_extensions(category = None):
     """
     Gets list of all Extensions installed in Visual Studio Code.
     Returns list of extensions that are all wrapped in VSCodeExtension dataclass
@@ -69,20 +66,17 @@ def get_installed_extensions(
     :raise NoVSCodeException: If Visual Studio Code is not installed, or it's version does not support CLI (Command Line Interface)
     """
     args = ["code", "--list-extensions", "--show-versions"]
-    if category is not None and isinstance(category, ExtensionCategory): args += ["--category", category.value]
+    if category is not None and isinstance(category, ExtensionCategory): args += ["--category", category.value] # type: ignore
     data = run(args, shell=True, capture_output=True).stdout.decode("utf-8", "ignore")
     extensions = []
     for ext in data.split("\n")[:-1]:
         find = search("([a-z\d-]+)\.([a-z0-9-]+)@(.+)", ext, IGNORECASE)
-        extensions.append(VSCodeExtension(find.group(1), find.group(2), find.group(3)))
+        extensions.append(VSCodeExtension(find.group(1), find.group(2), find.group(3))) # type: ignore
     return extensions
 
 
 @vscode_check
-def install_extension(
-        extension: str,
-        force: bool = False
-) -> None:
+def install_extension(extension,force = False):
     """
     Installs extension in Visual Studio Code.
     Extension in string version must be specified in format `publisher.name`.
@@ -95,10 +89,7 @@ def install_extension(
 
 
 @vscode_check
-def uninstall_extension(
-        extension: str,
-        force: bool = False
-) -> None:
+def uninstall_extension(extension,force = False) -> None:
     """
     Uninstalls extension in Visual Studio Code.
     Extension in string version must be specified in format `publisher.name`.

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from subprocess import run
 from os import system as runcmd, PathLike
 from os.path import join as joinpath
-from typing import Union, Iterable, Literal, Tuple, Any
+from typing import Union
 
 from .pyvscode import vscode_check
 
@@ -15,18 +15,12 @@ def __opt__(**kwargs):
     return ret
 
 
-def __islistinstance(obj: list, cls_or_tuple: type | Tuple[type | Tuple[Any, ...], ...]) -> bool:
+def __islistinstance(obj, cls_or_tuple):
     return all(isinstance(p, cls_or_tuple) for p in obj)
 
 
 @vscode_check
-def open(
-        paths: Union[str, bytes, PathLike, Iterable[Union[str, bytes, PathLike]]],
-        new_window: bool = False,
-        reuse_window: bool = False,
-        locale: Union[Literal[
-            "en", "zh-cn", "zh-tw", "fr", "de", "it", "es", "ja", "ko", "ru", "pt-br", "tr", "pl", "cs"], None] = None
-) -> None:
+def open(paths, new_window=False, reuse_window=False, locale=None):
     """
     Opens one file, folder or multiple files in VS Code editor.
     Allows to open files that don't even exists. To open a folder, the folder needs to exist.
@@ -42,14 +36,7 @@ def open(
 
 
 @vscode_check
-def open_difference(
-        first_file_path: Union[str, bytes, PathLike],
-        second_file_path: Union[str, bytes, PathLike],
-        new_window: bool = False,
-        reuse_window: bool = False,
-        locale: Union[Literal[
-            "en", "zh-cn", "zh-tw", "fr", "de", "it", "es", "ja", "ko", "ru", "pt-br", "tr", "pl", "cs"], None] = None
-) -> None:
+def open_difference(first_file_path, second_file_path, new_window=False, reuse_window=False, locale=None):
     """
     Opens difference tab between two files in Visual Studio Code.
 
@@ -64,15 +51,7 @@ def open_difference(
 
 
 @vscode_check
-def goto_file(
-        file_path: Union[str, bytes, PathLike],
-        line: int,
-        character: Union[int, None] = None,
-        new_window: bool = False,
-        reuse_window: bool = False,
-        locale: Union[Literal[
-            "en", "zh-cn", "zh-tw", "fr", "de", "it", "es", "ja", "ko", "ru", "pt-br", "tr", "pl", "cs"], None] = None
-) -> None:
+def goto_file(file_path, line, character=None, new_window=False, reuse_window=False, locale=None):
     """
     Opens specific file with caret cursor at specific line and column (character) in Visual Studio Code.
     In default caret position is [1;1] (start of the file)
@@ -91,10 +70,7 @@ def goto_file(
 
 
 @vscode_check
-def open_empty_session(
-        locale: Union[Literal[
-            "en", "zh-cn", "zh-tw", "fr", "de", "it", "es", "ja", "ko", "ru", "pt-br", "tr", "pl", "cs"], None] = None
-) -> None:
+def open_empty_session(locale=None):
     """
     Shorthand for `open()` method. Opens new Visual Studio Code with empty session.
 
@@ -104,14 +80,7 @@ def open_empty_session(
 
 
 @vscode_check
-def open_folder(
-        folder_path: Union[str, bytes, PathLike],
-        files_path: Union[Iterable[Union[str, bytes, PathLike]],] = None,
-        new_window: bool = False,
-        reuse_window: bool = False,
-        locale: Union[Literal[
-            "en", "zh-cn", "zh-tw", "fr", "de", "it", "es", "ja", "ko", "ru", "pt-br", "tr", "pl", "cs"], None] = None
-) -> None:
+def open_folder(folder_path, files_path=None, new_window=False, reuse_window=False, locale=None):
     """
     Shorthand for `open()` method.
     Opens a folder in Visual Studio Code, in addition rather than classic `open()` method
@@ -137,7 +106,7 @@ class VSCodeVersion:
 
 
 @vscode_check
-def get_version() -> VSCodeVersion:
+def get_version():
     """
     Gets Visual Studio Code version that is installed
 

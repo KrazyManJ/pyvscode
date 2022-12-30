@@ -1,4 +1,4 @@
-def is_present() -> bool:
+def is_present():
     """
     Checks if Visual Studio Code is installed. Is runned everytime, when you try to perform
     any action from pyvscode.
