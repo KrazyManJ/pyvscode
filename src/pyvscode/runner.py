@@ -2,9 +2,9 @@ from dataclasses import dataclass
 from subprocess import run
 from os import system as runcmd, PathLike
 from os.path import join as joinpath
-from typing import Union, Iterable, Literal
+from typing import Union, Iterable, Literal, Tuple, Any
 
-from .pyvscode import is_present, NoVSCodeException
+from .pyvscode import vscode_check
 
 
 def __opt__(**kwargs):
@@ -15,6 +15,11 @@ def __opt__(**kwargs):
     return ret
 
 
+def __islistinstance(obj: list, cls_or_tuple: type | Tuple[type | Tuple[Any, ...], ...]) -> bool:
+    return all(isinstance(p, cls_or_tuple) for p in obj)
+
+
+@vscode_check
 def open(
         paths: Union[str, bytes, PathLike, Iterable[Union[str, bytes, PathLike]]],
         new_window: bool = False,
@@ -28,11 +33,15 @@ def open(
 
     :raise NoVSCodeException: If Visual Studio Code is not installed, or it's version does not support CLI (Command Line Interface)
     """
-    if not is_present(): return
+    if isinstance(paths, list) and not __islistinstance(paths, Union[str, bytes, PathLike]):
+        raise TypeError("List with unexpected type, expected PathLike string!")
+    if not isinstance(paths, list) and not isinstance(paths, Union[str, bytes, PathLike]):
+        raise TypeError(f"Expected PathLike string, got {type(paths)} instead!")
     files = paths if type(paths) is str else " ".join(paths)
     runcmd(f'code {__opt__(new_window=new_window, reuse_window=reuse_window, locale=locale)} {files}')
 
 
+@vscode_check
 def open_difference(
         first_file_path: Union[str, bytes, PathLike],
         second_file_path: Union[str, bytes, PathLike],
@@ -46,11 +55,15 @@ def open_difference(
 
     :raise NoVSCodeException: If Visual Studio Code is not installed, or it's version does not support CLI (Command Line Interface)
     """
-    if not is_present(): return
+    if not isinstance(first_file_path, Union[str, bytes, PathLike]):
+        raise TypeError(f"First path incorrect type, expected PathLike string, got {type(first_file_path)} instead!")
+    if not isinstance(second_file_path, Union[str, bytes, PathLike]):
+        raise TypeError(f"Second path incorrect type, expected PathLike string, got {type(first_file_path)} instead!")
     runcmd(
         f"code -d {__opt__(new_window=new_window, reuse_window=reuse_window, locale=locale)} {first_file_path} {second_file_path}")
 
 
+@vscode_check
 def goto_file(
         file_path: Union[str, bytes, PathLike],
         line: int,
@@ -66,11 +79,18 @@ def goto_file(
 
     :raise NoVSCodeException: If Visual Studio Code is not installed, or it's version does not support CLI (Command Line Interface)
     """
-    if not is_present(): return
+    if not isinstance(file_path, Union[str, bytes, PathLike]):
+        raise TypeError(f"Expected PathLike string, got {type(file_path)} instead!")
+    if type(line) is not int:
+        raise TypeError(f"Line must be an integer, not {type(line)}!")
+    if character is not None and type(character) is not int:
+        raise TypeError(f"Character must be an integer, not {type(line)}!")
+    char = f":{str(character)}" if character is not None else ""
     runcmd(
-        f"code -g {__opt__(new_window=new_window, reuse_window=reuse_window, locale=locale)} {file_path}:{line}{':' + str(character) if character is not None else ''}")
+        f"code -g {__opt__(new_window=new_window, reuse_window=reuse_window, locale=locale)} {file_path}:{line}{char}")
 
 
+@vscode_check
 def open_empty_session(
         locale: Union[Literal[
             "en", "zh-cn", "zh-tw", "fr", "de", "it", "es", "ja", "ko", "ru", "pt-br", "tr", "pl", "cs"], None] = None
@@ -80,10 +100,10 @@ def open_empty_session(
 
     :raise NoVSCodeException: If Visual Studio Code is not installed, or it's version does not support CLI (Command Line Interface)
     """
-    if not is_present(): return
     open("", True, locale=locale)
 
 
+@vscode_check
 def open_folder(
         folder_path: Union[str, bytes, PathLike],
         files_path: Union[Iterable[Union[str, bytes, PathLike]],] = None,
@@ -99,7 +119,6 @@ def open_folder(
 
     :raise NoVSCodeException: If Visual Studio Code is not installed, or it's version does not support CLI (Command Line Interface)
     """
-    if not is_present(): return
     paths = [joinpath(folder_path, path) for path in files_path] if files_path is not None else []
     paths.insert(0, folder_path)
     open(paths, new_window, reuse_window, locale)
@@ -117,12 +136,12 @@ class VSCodeVersion:
     def __str__(self): return self.version
 
 
+@vscode_check
 def get_version() -> VSCodeVersion:
     """
     Gets Visual Studio Code version that is installed
 
     :raise NoVSCodeException: If Visual Studio Code is not installed, or it's version does not support CLI (Command Line Interface)
     """
-    if not is_present(): raise NoVSCodeException()
     data = run(["code", "-v"], shell=True, capture_output=True).stdout.decode("utf-8", "ignore").split("\n")[:-1]
     return VSCodeVersion(data[0], data[1], data[2])  # type: ignore

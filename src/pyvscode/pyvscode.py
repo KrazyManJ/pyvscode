@@ -16,3 +16,8 @@ class NoVSCodeException(Exception):
     def __init__(self) -> None:
         if is_present(): return
         super().__init__("Visual Studio Code was not found on this computer!")
+
+
+def vscode_check(fct):
+    if not is_present(): raise NoVSCodeException()
+    return fct

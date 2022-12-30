@@ -2,14 +2,14 @@ import re
 from dataclasses import dataclass
 from typing import Union
 
-from src.pyvscode import is_present
-from .pyvscode import NoVSCodeException
+from .pyvscode import vscode_check
 from re import search, IGNORECASE
 from subprocess import run
 from os import system as runcmd
 from enum import Enum
 
 EXT_STR_REGEX = re.compile("[a-z\d_-]+\.[a-z\d_-]+(@[\d.]+|)", re.IGNORECASE)
+
 
 class ExtensionCategory(Enum):
     """
@@ -58,8 +58,9 @@ class VSCodeExtension(object):
         return f"{self.publisher}.{self.name}"
 
 
+@vscode_check
 def get_installed_extensions(
-        category: Union[ExtensionCategory,None]=None
+        category: Union[ExtensionCategory, None] = None
 ) -> list[VSCodeExtension]:
     """
     Gets list of all Extensions installed in Visual Studio Code.
@@ -67,20 +68,20 @@ def get_installed_extensions(
 
     :raise NoVSCodeException: If Visual Studio Code is not installed, or it's version does not support CLI (Command Line Interface)
     """
-    if not is_present(): raise NoVSCodeException()
     args = ["code", "--list-extensions", "--show-versions"]
-    if category is not None and isinstance(category, ExtensionCategory): args += ["--category", category.value]  # type: ignore
+    if category is not None and isinstance(category, ExtensionCategory): args += ["--category", category.value]
     data = run(args, shell=True, capture_output=True).stdout.decode("utf-8", "ignore")
     extensions = []
     for ext in data.split("\n")[:-1]:
         find = search("([a-z\d-]+)\.([a-z0-9-]+)@(.+)", ext, IGNORECASE)
-        extensions.append(VSCodeExtension(find.group(1), find.group(2), find.group(3)))  # type: ignore
+        extensions.append(VSCodeExtension(find.group(1), find.group(2), find.group(3)))
     return extensions
 
 
+@vscode_check
 def install_extension(
         extension: str,
-        force: bool=False
+        force: bool = False
 ) -> None:
     """
     Installs extension in Visual Studio Code.
@@ -88,13 +89,15 @@ def install_extension(
 
     :raise NoVSCodeException: If Visual Studio Code is not installed, or it's version does not support CLI (Command Line Interface)
     """
-    if not is_present(): raise NoVSCodeException()
+    if EXT_STR_REGEX.fullmatch(extension) is None:
+        raise ValueError("Invalid extension string! String must be formatted as `publisher.name`!")
     runcmd(f"code {'--force' if force else ''} --install-extension {extension}")
 
 
+@vscode_check
 def uninstall_extension(
         extension: str,
-        force: bool=False
+        force: bool = False
 ) -> None:
     """
     Uninstalls extension in Visual Studio Code.
@@ -102,6 +105,6 @@ def uninstall_extension(
 
     :raise NoVSCodeException: If Visual Studio Code is not installed, or it's version does not support CLI (Command Line Interface)
     """
-    if not is_present(): raise NoVSCodeException()
-    if extension not in get_installed_extensions(): return
+    if EXT_STR_REGEX.fullmatch(extension) is None:
+        raise ValueError("Invalid extension string! String must be formatted as `publisher.name`!")
     runcmd(f"code {'--force' if force else ''} --uninstall-extension {extension}")
