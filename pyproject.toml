@@ -18,7 +18,10 @@ classifiers = [
     "Operating System :: OS Independent",
     "Typing :: Typed"
 ]
-
+dependencies = [
+    "dataclasses",
+    "subprocess"
+]
 [project.urls]
 "Repository" = "https://github.com/KrazyManJ/pyvscode"
 "Bug Tracker" = "https://github.com/KrazyManJ/pyvscode/issues"

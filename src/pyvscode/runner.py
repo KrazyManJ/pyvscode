@@ -4,7 +4,7 @@ from os import system as runcmd, PathLike
 from os.path import join as joinpath
 from typing import Union
 
-from .pyvscode import vscode_check
+from .pyvscode import vscode_check # type: ignore
 
 
 def __opt__(**kwargs):
