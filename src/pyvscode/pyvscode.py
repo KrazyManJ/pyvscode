@@ -1,3 +1,6 @@
+import random
+
+
 def is_present():
     """
     Checks if Visual Studio Code is installed. Is runned everytime, when you try to perform
@@ -18,6 +21,9 @@ class NoVSCodeException(Exception):
         super().__init__("Visual Studio Code was not found on this computer!")
 
 
-def vscode_check(fct):
-    if not is_present(): raise NoVSCodeException()
-    return fct
+def vscode_check(func):
+    def inner(*args,**kwargs):
+        if not is_present():
+            raise NoVSCodeException()
+        func(*args,**kwargs)
+    return inner
