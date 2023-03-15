@@ -1,11 +1,11 @@
 import re
 from dataclasses import dataclass
-
-from .pyvscode import vscode_check
-from re import search, IGNORECASE
-from subprocess import run
-from os import system as runcmd
 from enum import Enum
+from os import system as runcmd
+from re import search, IGNORECASE
+from subprocess import run, CREATE_NO_WINDOW
+
+from .pyvscode import vscode_check  # type: ignore
 
 EXT_STR_REGEX = re.compile("[a-z\d_-]+\.[a-z\d_-]+(@[\d.]+|)", re.IGNORECASE)
 
@@ -58,7 +58,7 @@ class VSCodeExtension(object):
 
 
 @vscode_check
-def get_installed_extensions(category = None):
+def get_installed_extensions(category=None):
     """
     Gets list of all Extensions installed in Visual Studio Code.
     Returns list of extensions that are all wrapped in VSCodeExtension dataclass
@@ -66,17 +66,18 @@ def get_installed_extensions(category = None):
     :raise NoVSCodeException: If Visual Studio Code is not installed, or it's version does not support CLI (Command Line Interface)
     """
     args = ["code", "--list-extensions", "--show-versions"]
-    if category is not None and isinstance(category, ExtensionCategory): args += ["--category", category.value] # type: ignore
-    data = run(args, shell=True, capture_output=True).stdout.decode("utf-8", "ignore")
+    if category is not None and isinstance(category, ExtensionCategory): args += ["--category",
+                                                                                  category.value]  # type: ignore
+    data = run(args, shell=True, capture_output=True, creationflags=CREATE_NO_WINDOW).stdout.decode("utf-8", "ignore")
     extensions = []
     for ext in data.split("\n")[:-1]:
         find = search("([a-z\d-]+)\.([a-z0-9-]+)@(.+)", ext, IGNORECASE)
-        extensions.append(VSCodeExtension(find.group(1), find.group(2), find.group(3))) # type: ignore
+        extensions.append(VSCodeExtension(find.group(1), find.group(2), find.group(3)))  # type: ignore
     return extensions
 
 
 @vscode_check
-def install_extension(extension,force = False):
+def install_extension(extension, force=False):
     """
     Installs extension in Visual Studio Code.
     Extension in string version must be specified in format `publisher.name`.
@@ -89,7 +90,7 @@ def install_extension(extension,force = False):
 
 
 @vscode_check
-def uninstall_extension(extension,force = False) -> None:
+def uninstall_extension(extension, force=False) -> None:
     """
     Uninstalls extension in Visual Studio Code.
     Extension in string version must be specified in format `publisher.name`.

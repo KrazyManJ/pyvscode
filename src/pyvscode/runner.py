@@ -1,10 +1,10 @@
 from dataclasses import dataclass
-from subprocess import run
 from os import system as runcmd, PathLike
 from os.path import join as joinpath
+from subprocess import run, CREATE_NO_WINDOW
 from typing import Union
 
-from .pyvscode import vscode_check # type: ignore
+from .pyvscode import vscode_check  # type: ignore
 
 
 def __opt__(**kwargs):
@@ -112,5 +112,7 @@ def get_version():
 
     :raise NoVSCodeException: If Visual Studio Code is not installed, or it's version does not support CLI (Command Line Interface)
     """
-    data = run(["code", "-v"], shell=True, capture_output=True).stdout.decode("utf-8", "ignore").split("\n")[:-1]
+    data = run(["code", "-v"], shell=True, capture_output=True, creationflags=CREATE_NO_WINDOW).stdout.decode("utf-8",
+                                                                                                              "ignore").split(
+        "\n")[:-1]
     return VSCodeVersion(data[0], data[1], data[2])  # type: ignore

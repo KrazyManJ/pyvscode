@@ -7,7 +7,7 @@ only-packages = true
 
 [project]
 name = "pyvscode"
-version = "2.2.0"
+version = "2.2.1"
 authors = [{ name = "KrazyManJ" }]
 description = "Package for interacting with IDE called Visual Studio Code."
 readme = "README.md"
