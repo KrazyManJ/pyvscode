@@ -22,6 +22,6 @@ def vscode_check(func):
     def inner(*args, **kwargs):
         if not is_present():
             raise NoVSCodeException()
-        func(*args, **kwargs)
+        return func(*args, **kwargs)
 
     return inner

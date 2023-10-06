@@ -1,7 +1,7 @@
 from dataclasses import dataclass
-from os import system as runcmd, PathLike
+from os import PathLike
 from os.path import join as joinpath
-from subprocess import run, CREATE_NO_WINDOW
+from subprocess import run, CREATE_NO_WINDOW, DEVNULL, PIPE
 from typing import Union
 
 from .pyvscode import vscode_check  # type: ignore
@@ -32,7 +32,13 @@ def open(paths, new_window=False, reuse_window=False, locale=None):
     if not isinstance(paths, list) and not isinstance(paths, Union[str, bytes, PathLike]):
         raise TypeError(f"Expected PathLike string, got {type(paths)} instead!")
     files = paths if type(paths) is str else " ".join(paths)
-    runcmd(f'code {__opt__(new_window=new_window, reuse_window=reuse_window, locale=locale)} {files}')
+    run(
+        f'code {__opt__(new_window=new_window, reuse_window=reuse_window, locale=locale)} {files}',
+        stdout=DEVNULL,
+        stderr=DEVNULL,
+        creationflags=CREATE_NO_WINDOW,
+        shell=True
+    )
 
 
 @vscode_check
@@ -46,8 +52,13 @@ def open_difference(first_file_path, second_file_path, new_window=False, reuse_w
         raise TypeError(f"First path incorrect type, expected PathLike string, got {type(first_file_path)} instead!")
     if not isinstance(second_file_path, Union[str, bytes, PathLike]):
         raise TypeError(f"Second path incorrect type, expected PathLike string, got {type(first_file_path)} instead!")
-    runcmd(
-        f"code -d {__opt__(new_window=new_window, reuse_window=reuse_window, locale=locale)} {first_file_path} {second_file_path}")
+    run(
+        f"code -d {__opt__(new_window=new_window, reuse_window=reuse_window, locale=locale)} {first_file_path} {second_file_path}",
+        stdout=DEVNULL,
+        stderr=DEVNULL,
+        creationflags=CREATE_NO_WINDOW,
+        shell=True
+    )
 
 
 @vscode_check
@@ -65,8 +76,13 @@ def goto_file(file_path, line, character=None, new_window=False, reuse_window=Fa
     if character is not None and type(character) is not int:
         raise TypeError(f"Character must be an integer, not {type(line)}!")
     char = f":{str(character)}" if character is not None else ""
-    runcmd(
-        f"code -g {__opt__(new_window=new_window, reuse_window=reuse_window, locale=locale)} {file_path}:{line}{char}")
+    run(
+        f"code -g {__opt__(new_window=new_window, reuse_window=reuse_window, locale=locale)} {file_path}:{line}{char}",
+        stdout=DEVNULL,
+        stderr=DEVNULL,
+        creationflags=CREATE_NO_WINDOW,
+        shell=True
+    )
 
 
 @vscode_check
@@ -112,7 +128,7 @@ def get_version():
 
     :raise NoVSCodeException: If Visual Studio Code is not installed, or it's version does not support CLI (Command Line Interface)
     """
-    data = run(["code", "-v"], shell=True, capture_output=True, creationflags=CREATE_NO_WINDOW).stdout.decode("utf-8",
+    data = run("code -v", creationflags=CREATE_NO_WINDOW, shell=True, stdout=PIPE, stderr=DEVNULL).stdout.decode("utf-8",
                                                                                                               "ignore").split(
         "\n")[:-1]
     return VSCodeVersion(data[0], data[1], data[2])  # type: ignore
